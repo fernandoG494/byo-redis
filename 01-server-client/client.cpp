@@ -28,18 +28,21 @@ int main() {
     die("connect");
   };
 
-  // data stream
-  char msg[] = "hello";
-  write(fd, msg, strlen(msg));
-
-  char read_buffer[64] = {};
-  ssize_t n = read(fd, read_buffer, sizeof(read_buffer) - 1);
-  if(n < 0) {
-    die("read");
+  // multiple requests
+  int32_t err = query(fd, "hello 1");
+  if (err) {
+    goto L_DONE;
   };
-
-  printf("server says: %s\n", read_buffer);
-  close(fd);
+  err = query(fd, "hello 2");
+  if (err) {
+    goto L_DONE;
+  };
+  err = query(fd, "hello 3");
+  if (err) {
+    goto L_DONE;
+  };
+  L_DONE: 
+    close(fd);
 
   return 0;
 };

@@ -11,6 +11,8 @@
 
 #include "utils.h"
 
+using namespace std;
+
 static void do_something(int connfd) {
   char read_buffer[64] = {};
   ssize_t n = read(connfd, read_buffer, sizeof(read_buffer) - 1);
@@ -54,15 +56,21 @@ int main() {
 
   // loop for connection
   while (true) {
+    // accept connections
     struct sockaddr_in client_address = {};
     socklen_t socklen = sizeof(client_address);
     int connfd = accept(fd, (struct sockaddr *)&client_address, &socklen);
-
     if (connfd < 0) {
-      continue;
+      continue; // error
     };
 
-    do_something(connfd);
+    while (true) {
+      int32_t error = one_request(connfd);
+      if (error) {
+        break;
+      };
+    };
+
     close(connfd);
   };
 
