@@ -1,0 +1,4 @@
+/home/fernando/Documents/byo-redis/01-server-client/build/CMakeFiles/client.dir
+/home/fernando/Documents/byo-redis/01-server-client/build/CMakeFiles/server.dir
+/home/fernando/Documents/byo-redis/01-server-client/build/CMakeFiles/edit_cache.dir
+/home/fernando/Documents/byo-redis/01-server-client/build/CMakeFiles/rebuild_cache.dir

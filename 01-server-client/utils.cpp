@@ -131,3 +131,20 @@ int32_t query(int fd, const char *text) {
   printf("server says: %s\n", &read_buffer[4]);
   return 0;
 };
+
+void fd_set_nb(int fd) {
+  errno = 0;
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (errno) {
+    die("fcntl error");
+    return;
+  };
+
+  flags |= O_NONBLOCK;
+
+  errno = 0;
+  (void)fcntl(fd, F_SETFL, flags);
+  if (errno) {
+    die("fcntl error");
+  };
+};

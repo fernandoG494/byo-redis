@@ -1,0 +1,25 @@
+# Archivos y carpetas generados por CMake
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/Makefile
+/cmake_install.cmake
+/Testing/
+
+# Archivos de salida
+*.o
+*.obj
+*.so
+*.a
+*.exe
+*.out
+*.log
+
+# Archivos temporales
+*.tmp
+*.swp
+*.swo
+
+# Archivos específicos de entornos
+.DS_Store
+Thumbs.db
