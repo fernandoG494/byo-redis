@@ -1,22 +1,6 @@
-#include <cstdlib>
 #include "utils.h"
 
 using namespace std;
-
-static void do_something(int connfd) {
-  char read_buffer[64] = {};
-  ssize_t n = read(connfd, read_buffer, sizeof(read_buffer) - 1);
-
-  if (n < 0) {
-    msg("read() error");
-    return;
-  };
-
-  printf("client says: %s\n", read_buffer);
-
-  char write_buffer[] = "world";
-  write(connfd, write_buffer, strlen(write_buffer));
-};
 
 int main() {
   // configuracion de socket
@@ -44,24 +28,58 @@ int main() {
     die("listen()");
   };
 
-  // loop for connection
+  // a map of all client connections, keyed by fd
+  vector<Conn *> fd2conn;
+  fd_set_nb(fd);  // listen fd to nonblocking mode
+
+  vector<struct pollfd> poll_args;
+  
   while (true) {
-    // accept connections
-    struct sockaddr_in client_address = {};
-    socklen_t socklen = sizeof(client_address);
-    int connfd = accept(fd, (struct sockaddr *)&client_address, &socklen);
-    if (connfd < 0) {
-      continue; // error
+    // prepare arguments
+    poll_args.clear();
+
+    struct pollfd pfd = {fd, POLLIN, 0};
+    poll_args.push_back(pfd);
+
+    // connection fds
+    for (Conn *conn: fd2conn) {
+      if (!conn) {
+        continue;
+      };
+
+      struct pollfd pfd = {};
+      pfd.fd = conn->fd;
+      pfd.events = (conn->state == STATE_REQ) ? POLLIN : POLLOUT;
+      pfd.events = pfd.events | POLLERR;
+      poll_args.push_back(pfd);
     };
 
-    while (true) {
-      int32_t error = one_request(connfd);
-      if (error) {
-        break;
+    // poll for active fds
+    int rv = poll(poll_args.data(), (nfds_t)poll_args.size(), 1000);
+    if (rv < 0) {
+      die("poll");
+    };
+
+    // process active direction
+    for (size_t i = 0; i < poll_args.size(); i++) {
+      if (poll_args[i].revents) {
+        Conn *conn = fd2conn[poll_args[i].fd];
+        connection_io(conn);
+
+        if (conn->state == STATE_END) {
+          // client closed normally, or something bad happened.
+          // destroy this connection
+          fd2conn[conn->fd] = NULL;
+          (void)close(conn->fd);
+          free(conn);
+        };
       };
     };
-
-    close(connfd);
+    
+    // try to accept a new connection if the listening fd is active
+     if (poll_args[0].revents) {
+      (void)accept_new_conn(fd2conn, fd);
+     };
   };
 
   return 0;

@@ -1,5 +1,6 @@
 {
   "files.associations": {
     "cassert": "cpp"
-  }
+  },
+  "cmake.sourceDirectory": "/home/fernando/Documents/byo-redis/01-server-client"
 }
